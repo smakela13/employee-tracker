@@ -17,6 +17,7 @@ CREATE TABLE role (
     salary DECIMAL(10,2) NOT NULL,
     department_id INT NOT NULL,
     PRIMARY KEY(id),
+    FOREIGN KEY(department_id) REFERENCES department(id)
 );
 
 -- Creating a table for employee.
@@ -27,4 +28,5 @@ CREATE TABLE employee (
     role_id INT NOT NULL,
     manager_id INT NULL,
     PRIMARY KEY(id),
+    FOREIGN KEY(role_id) REFERENCES role(id)
 );
