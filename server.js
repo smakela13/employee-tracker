@@ -25,8 +25,8 @@ const employeeTracker = () => {
 				'Add Department',
 				'Remove Department',
 				'Add Role',
-        'Remove Role',
-        'View Budget by Department',
+				'Remove Role',
+				'View Budget by Department',
 			],
 		})
 		.then((answer) => {
@@ -92,4 +92,34 @@ const employeeTracker = () => {
 					break;
 			}
 		});
+};
+
+function viewEmployees() {
+	const query = 'SELECT * FROM employee';
+	connection.query(query, (err, res) => {
+		if (err) throw err;
+		console.log(res.length + ' employees found!');
+		console.table('Current Employees:', res);
+		employeeTracker();
+	});
+};
+
+function viewEmpDepartments() {
+	const query = 'SELECT * FROM department';
+	connection.query(query, (err, res) => {
+		if (err) throw err;
+		console.log(res.length + ' employees found!');
+		console.table('Current Employees by Department:', res);
+		employeeTracker();
+	});
+};
+
+function viewEmpManagers() {
+	const query = 'SELECT * FROM manager_id';
+	connection.query(query, (err, res) => {
+		if (err) throw err;
+		console.log(res.length + ' employees found!');
+		console.table('Current Employees by Manager:', res);
+		employeeTracker();
+	});
 };
