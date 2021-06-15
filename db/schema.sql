@@ -1,7 +1,7 @@
 -- If a database already exists, it'll be deleted and then created and used.
-DROP DATABASE IF EXISTS companyDB;
-CREATE database companyDB;
-USE companyDB;
+DROP DATABASE IF EXISTS company_db;
+CREATE database company_db;
+USE company_db;
 
 -- Creating a table for the department.
 CREATE TABLE department (

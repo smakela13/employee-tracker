@@ -1,4 +1,4 @@
-USE companyDB
+USE company_db;
 
 INSERT INTO department(name)
 VALUES ('UI/UX'), ('Database'), ('Web Dev'), ('Mobile Dev');
