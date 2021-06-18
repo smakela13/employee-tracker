@@ -154,6 +154,7 @@ function addEmployee() {
 					console.log(
 						`${answer.first_name} ${answer.last_name} was successfully added.`
 					);
+					console.table('Current Employees:', res);
 					employeeTracker();
 				}
 			);
@@ -181,45 +182,58 @@ function viewRoles() {
 }
 
 function addRole() {
+	const roleData = [];
+	const roleNames = [];
+	const query = 'SELECT * FROM role';
+	connection.query(query, (err, res) => {
+		if (err) throw err;
+		res.forEach((row) => {
+			roleNames.push(row.title);
+			roleData.push({
+				title: row.title,
+				id: row.id,
+				salary: row.salary,
+				department_id: row.department_id,
+			});
+		});
+	});
+
 	inquirer
 		.prompt([
 			{
-				name: 'first_name',
+				name: 'title',
 				type: 'input',
-				message: 'Provide the first name of your employee.',
+				message: 'Provide add a role title for your company.',
 			},
 			{
-				name: 'last_name',
+				name: 'salary',
 				type: 'input',
-				message: 'Provide the last name of your employee.',
+				message: 'Provide the salary for your role.',
 			},
 			{
-				name: 'role',
+				name: 'department_id',
 				type: 'list',
-				choices: function () {
-					const roleArr = [];
-					for (let i = 0; i < array.length; i++) {
-						roleArr.push(array[i].title);
-					}
-					return roleArr;
-				},
-				message: 'Provide the role for your employee.',
+				message: 'Provide the department id for your role.',
 			},
 		])
 		.then((answer) => {
+			// Get and store roleID from roleData
+			let roleID = 1;
+			roleData.forEach((data) => {
+				if (data.title === answer.role) {
+					roleID = data.id;
+				}
+			});
 			connection.query(
-				'SELECT * INSERT INTO employee SET ?',
+				'INSERT INTO role SET ?',
 				{
-					first_name: answer.first_name,
-					last_name: answer.last_name,
-					role_id: role_id,
-					manager_id: answer.manager_id,
+					title: answer.title,
+					salary: answer.salary,
+					department_id: 1,
 				},
 				(err, res) => {
 					if (err) throw err;
-					console.log(
-						`${answer.first_name} ${answer.last_name} was successfully added.`
-					);
+					console.log(`${answer.title} was successfully added.`);
 					employeeTracker();
 				}
 			);
