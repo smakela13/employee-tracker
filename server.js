@@ -88,48 +88,77 @@ function viewEmployees() {
 		console.table('Current Employees:', res);
 		employeeTracker();
 	});
-};
+}
 
 function addEmployee() {
-	inquirer.prompt([
-		{
-			name: 'first_name',
-			type: 'input',
-			message: 'Provide the first name of your employee.'
-		},
-		{
-			name: 'last_name',
-			type: 'input',
-			message: 'Provide the last name of your employee.'
-		},
-		{
-			name: 'role',
-			type: 'list',
-			choices: function () {
-				const roleArr = [];
-				for (let i = 0; i < res.length; i++) {
-					roleArr.push(res[i].title);
-				}
-				return roleArr;
-			},
-			message: 'Provide the role for your employee.'
-		}
-	]).then((answer) => {
-		connection.query('SELECT * INSERT INTO employee SET ?',
-			{
-				first_name: answer.first_name,
-				last_name: answer.last_name,
-				role_id: answer.role,
-				manager_id: answer.manager_id
-			},
-			(err, res) => {
-				if (err) throw err
-				console.log(`${answer.first_name} ${answer.last_name} was successfully added.`)
-				employeeTracker();
-			}
-		);
+	const roleData = [];
+	const roleNames = [];
+	const query = 'SELECT * FROM role';
+	connection.query(query, (err, res) => {
+		if (err) throw err;
+		res.forEach((row) => {
+			roleNames.push(row.title);
+			roleData.push({
+				title: row.title,
+				id: row.id,
+				salary: row.salary,
+				department_id: row.department_id,
+			});
+		});
 	});
-};
+
+	inquirer
+		.prompt([
+			{
+				name: 'first_name',
+				type: 'input',
+				message: 'Provide the first name of your employee.',
+			},
+			{
+				name: 'last_name',
+				type: 'input',
+				message: 'Provide the last name of your employee.',
+			},
+			{
+				name: 'role',
+				type: 'list',
+				message: 'Provide the role for your employee.',
+				choices: roleNames,
+			},
+			{
+				name: 'manager_id',
+				type: 'input',
+				message: 'Provide the manager id for your employee.',
+			},
+		])
+		.then((answer) => {
+			// Get and store roleID from roleData
+			let roleID = 0;
+			roleData.forEach((data) => {
+				if (data.title === answer.role) {
+					roleID = data.id;
+				}
+			});
+			console.log(`id ${roleID} ${answer.role} ${answer.manager_id} `);
+			// inserts to db
+			connection.query(
+				'INSERT INTO employee SET ?',
+				{
+					first_name: answer.first_name,
+					last_name: answer.last_name,
+					role_id: roleID,
+					manager_id: answer.manager_id,
+				},
+				(err, res) => {
+					if (err) throw err;
+					console.log(
+						`${answer.first_name} ${answer.last_name} was successfully added.`
+					);
+					employeeTracker();
+				}
+			);
+		});
+}
 
 function viewEmployees() {
 	const query = 'SELECT * FROM employee';
@@ -139,7 +168,7 @@ function viewEmployees() {
 		console.table('Current Employees:', res);
 		employeeTracker();
 	});
-};
+}
 
 function viewRoles() {
 	const query = 'SELECT * FROM role';
@@ -149,48 +178,53 @@ function viewRoles() {
 		console.table('Current Employees by Manager:', res);
 		employeeTracker();
 	});
-};
+}
 
 function addRole() {
-	inquirer.prompt([
-		{
-			name: 'first_name',
-			type: 'input',
-			message: 'Provide the first name of your employee.'
-		},
-		{
-			name: 'last_name',
-			type: 'input',
-			message: 'Provide the last name of your employee.'
-		},
-		{
-			name: 'role',
-			type: 'list',
-			choices: function () {
-				const roleArr = [];
-				for (let i = 0; i < array.length; i++) {
-					roleArr.push(array[i].title);
-				}
-				return roleArr;
-			},
-			message: 'Provide the role for your employee.'
-		}
-	]).then((answer) => {
-		connection.query('SELECT * INSERT INTO employee SET ?',
+	inquirer
+		.prompt([
 			{
-				first_name: answer.first_name,
-				last_name: answer.last_name,
-				role_id: role_id,
-				manager_id: answer.manager_id
+				name: 'first_name',
+				type: 'input',
+				message: 'Provide the first name of your employee.',
 			},
-			(err, res) => {
-			if (err) throw err;
-          console.log(`${answer.first_name} ${answer.last_name} was successfully added.`);
-          employeeTracker();
-        }
-      );
-    });
-};
+			{
+				name: 'last_name',
+				type: 'input',
+				message: 'Provide the last name of your employee.',
+			},
+			{
+				name: 'role',
+				type: 'list',
+				choices: function () {
+					const roleArr = [];
+					for (let i = 0; i < array.length; i++) {
+						roleArr.push(array[i].title);
+					}
+					return roleArr;
+				},
+				message: 'Provide the role for your employee.',
+			},
+		])
+		.then((answer) => {
+			connection.query(
+				'SELECT * INSERT INTO employee SET ?',
+				{
+					first_name: answer.first_name,
+					last_name: answer.last_name,
+					role_id: role_id,
+					manager_id: answer.manager_id,
+				},
+				(err, res) => {
+					if (err) throw err;
+					console.log(
+						`${answer.first_name} ${answer.last_name} was successfully added.`
+					);
+					employeeTracker();
+				}
+			);
+		});
+}
 
 function viewDepartments() {
 	const query = 'SELECT * FROM department';
@@ -200,45 +234,50 @@ function viewDepartments() {
 		console.table('Current Employees by Department:', res);
 		employeeTracker();
 	});
-};
+}
 
 function addDepartment() {
-	inquirer.prompt([
-		{
-			name: 'first_name',
-			type: 'input',
-			message: 'Provide the first name of your employee.'
-		},
-		{
-			name: 'last_name',
-			type: 'input',
-			message: 'Provide the last name of your employee.'
-		},
-		{
-			name: 'role',
-			type: 'list',
-			choices: function () {
-				const roleArr = [];
-				for (let i = 0; i < array.length; i++) {
-					roleArr.push(array[i].title);
-				}
-				return roleArr;
-			},
-			message: 'Provide the role for your employee.'
-		}
-	]).then((answer) => {
-		connection.query('SELECT * INSERT INTO employee SET ?',
+	inquirer
+		.prompt([
 			{
-				first_name: answer.first_name,
-				last_name: answer.last_name,
-				role_id: role_id,
-				manager_id: answer.manager_id
+				name: 'first_name',
+				type: 'input',
+				message: 'Provide the first name of your employee.',
 			},
-			(err, res) => {
-			if (err) throw err;
-          console.log(`${answer.first_name} ${answer.last_name} was successfully added.`);
-          employeeTracker();
-        }
-      );
-    });
-};
+			{
+				name: 'last_name',
+				type: 'input',
+				message: 'Provide the last name of your employee.',
+			},
+			{
+				name: 'role',
+				type: 'list',
+				choices: function () {
+					const roleArr = [];
+					for (let i = 0; i < array.length; i++) {
+						roleArr.push(array[i].title);
+					}
+					return roleArr;
+				},
+				message: 'Provide the role for your employee.',
+			},
+		])
+		.then((answer) => {
+			connection.query(
+				'SELECT * INSERT INTO employee SET ?',
+				{
+					first_name: answer.first_name,
+					last_name: answer.last_name,
+					role_id: role_id,
+					manager_id: answer.manager_id,
+				},
+				(err, res) => {
+					if (err) throw err;
+					console.log(
+						`${answer.first_name} ${answer.last_name} was successfully added.`
+					);
+					employeeTracker();
+				}
+			);
+		});
+}
