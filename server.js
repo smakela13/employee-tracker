@@ -135,13 +135,6 @@ function promptNewEmployee(roleNames, roleData) {
 			},
 		])
 		.then((answer) => {
-			// Get and store roleID from roleData
-			// let roleID = 0;
-			// roleData.forEach((data) => {
-			// 	if (data.title === answer.role) {
-			// 		roleID = data.id;
-			// 	}
-			// });
 			const roleID = roleData.find(data => data.title === answer.role).id;
 			console.log(`id ${roleID} ${answer.role} ${answer.manager_id} `);
 			// inserts to db
@@ -254,47 +247,33 @@ function viewDepartments() {
 }
 
 function addDepartment() {
-	inquirer
-		.prompt([
-			{
-				name: 'first_name',
-				type: 'input',
-				message: 'Provide the first name of your employee.',
-			},
-			{
-				name: 'last_name',
-				type: 'input',
-				message: 'Provide the last name of your employee.',
-			},
-			{
-				name: 'role',
-				type: 'list',
-				choices: function () {
-					const roleArr = [];
-					for (let i = 0; i < array.length; i++) {
-						roleArr.push(array[i].title);
-					}
-					return roleArr;
-				},
-				message: 'Provide the role for your employee.',
-			},
-		])
-		.then((answer) => {
-			connection.query(
-				'SELECT * INSERT INTO employee SET ?',
-				{
-					first_name: answer.first_name,
-					last_name: answer.last_name,
-					role_id: role_id,
-					manager_id: answer.manager_id,
-				},
-				(err, res) => {
-					if (err) throw err;
-					console.log(
-						`${answer.first_name} ${answer.last_name} was successfully added.`
-					);
-					employeeTracker();
-				}
-			);
+	const query = 'SELECT * FROM department';
+	connection.query(query, (err, res) => {
+		if (err) throw err;
 		});
+		inquirer
+			.prompt([
+				{
+					name: 'name',
+					type: 'input',
+					message: 'Provide the name of your department.',
+				},
+			])
+			.then((answer) => {
+				connection.query(
+					'INSERT INTO department SET ?',
+					{
+						name: answer.name,
+					},
+					(err, res) => {
+						if (err) throw err;
+						console.log(`${answer.name} was successfully added.`);
+						employeeTracker();
+					}
+				);
+			});
+}
+
+function exit() {
+	process.exit(0);
 }
