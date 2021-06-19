@@ -105,8 +105,11 @@ function addEmployee() {
 				department_id: row.department_id,
 			});
 		});
+		promptNewEmployee(roleNames, roleData);
 	});
+}
 
+function promptNewEmployee(roleNames, roleData) {
 	inquirer
 		.prompt([
 			{
@@ -133,32 +136,36 @@ function addEmployee() {
 		])
 		.then((answer) => {
 			// Get and store roleID from roleData
-			let roleID = 0;
-			roleData.forEach((data) => {
-				if (data.title === answer.role) {
-					roleID = data.id;
-				}
-			});
+			// let roleID = 0;
+			// roleData.forEach((data) => {
+			// 	if (data.title === answer.role) {
+			// 		roleID = data.id;
+			// 	}
+			// });
+			const roleID = roleData.find(data => data.title === answer.role).id;
 			console.log(`id ${roleID} ${answer.role} ${answer.manager_id} `);
 			// inserts to db
-			connection.query(
-				'INSERT INTO employee SET ?',
-				{
-					first_name: answer.first_name,
-					last_name: answer.last_name,
-					role_id: roleID,
-					manager_id: answer.manager_id,
-				},
-				(err, res) => {
-					if (err) throw err;
-					console.log(
-						`${answer.first_name} ${answer.last_name} was successfully added.`
-					);
-					console.table('Current Employees:', res);
-					employeeTracker();
-				}
-			);
+			insertNewEmployees(answer, roleID);
 		});
+}
+
+function insertNewEmployees(answer, roleID) {
+	connection.query(
+		'INSERT INTO employee SET ?',
+		{
+			first_name: answer.first_name,
+			last_name: answer.last_name,
+			role_id: roleID,
+			manager_id: answer.manager_id,
+		},
+		(err, res) => {
+			if (err) throw err;
+			console.log(
+				`${answer.first_name} ${answer.last_name} was successfully added.`
+			);
+			employeeTracker();
+		}
+	);
 }
 
 function viewEmployees() {
