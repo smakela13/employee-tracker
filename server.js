@@ -91,22 +91,27 @@ function viewEmployees() {
 }
 
 function addEmployee() {
-	const roleData = [];
-	const roleNames = [];
 	const query = 'SELECT * FROM role';
 	connection.query(query, (err, res) => {
 		if (err) throw err;
-		res.forEach((row) => {
-			roleNames.push(row.title);
-			roleData.push({
-				title: row.title,
-				id: row.id,
-				salary: row.salary,
-				department_id: row.department_id,
-			});
-		});
-		promptNewEmployee(roleNames, roleData);
+		const rolesInfo = getRoleData(res);
+		promptNewEmployee(rolesInfo.name, rolesInfo.data);
 	});
+}
+
+function getRoleData(res) {
+	const roleData = [];
+	const roleNames = [];
+	res.forEach((row) => {
+		roleNames.push(row.title);
+		roleData.push({
+			title: row.title,
+			id: row.id,
+			salary: row.salary,
+			department_id: row.department_id,
+		});
+	});
+	return {name: roleNames, data: roleData}
 }
 
 function promptNewEmployee(roleNames, roleData) {
@@ -136,7 +141,6 @@ function promptNewEmployee(roleNames, roleData) {
 		])
 		.then((answer) => {
 			const roleID = roleData.find(data => data.title === answer.role).id;
-			console.log(`id ${roleID} ${answer.role} ${answer.manager_id} `);
 			// inserts to db
 			insertNewEmployees(answer, roleID);
 		});
@@ -169,6 +173,54 @@ function viewEmployees() {
 		console.table('Current Employees:', res);
 		employeeTracker();
 	});
+}
+
+// TODO: Add a getEmpData() that resembles getRoleData()
+
+function updateEmpRole() {
+	const query = 'SELECT * FROM employee';
+	connection.query(query, (err, res) => {
+		if (err) throw err
+		console.log(res.length + ' employees found!')
+	});
+	// connection.query('UPDATE employee SET ? WHERE ?',
+	// 	[{
+	// 		role_id: 3
+	// 	},
+	// 	{
+	// 		id: 7
+	// 	}]
+	// );
+
+	inquirer
+		.prompt([
+			{
+				name: 'employee',
+				type: 'list',
+				message: 'Provide the role title of your employee you wish to update.',
+				choices: employeeNames,
+			},
+			{
+				name: 'role',
+				type: 'list',
+				message:
+					'Provide the role title of your employee you wish to update.',
+				choices: roleNames,
+			},
+		])
+		.then((answer) => {
+			connection.query(
+				'INSERT INTO department SET ?',
+				{
+					name: answer.name,
+				},
+				(err, res) => {
+					if (err) throw err;
+					console.log(`${answer.name} was successfully added.`);
+					employeeTracker();
+				}
+			);
+		});
 }
 
 function viewRoles() {
