@@ -182,22 +182,20 @@ function viewRoles() {
 }
 
 function addRole() {
-	const roleData = [];
 	const roleNames = [];
-	const query = 'SELECT * FROM role';
+	const departmentNames = {};
+	const query = 'SELECT * FROM role INNER JOIN department ON role.department_id = department.id';
 	connection.query(query, (err, res) => {
 		if (err) throw err;
 		res.forEach((row) => {
 			roleNames.push(row.title);
-			roleData.push({
-				title: row.title,
-				id: row.id,
-				salary: row.salary,
-				department_id: row.department_id,
-			});
+			departmentNames[row.name] = row.department_id;
 		});
+		promptNewRole(departmentNames);
 	});
+}
 
+function promptNewRole(departments) {
 	inquirer
 		.prompt([
 			{
@@ -214,30 +212,28 @@ function addRole() {
 				name: 'department_id',
 				type: 'list',
 				message: 'Provide the department id for your role.',
+				choices: Object.keys(departments),
 			},
 		])
 		.then((answer) => {
-			// Get and store roleID from roleData
-			let roleID = 1;
-			roleData.forEach((data) => {
-				if (data.title === answer.role) {
-					roleID = data.id;
-				}
-			});
-			connection.query(
-				'INSERT INTO role SET ?',
-				{
-					title: answer.title,
-					salary: answer.salary,
-					department_id: 1,
-				},
-				(err, res) => {
-					if (err) throw err;
-					console.log(`${answer.title} was successfully added.`);
-					employeeTracker();
-				}
-			);
+			insertNewRole(answer, departments);
 		});
+}
+
+function insertNewRole(answer, departments) {
+	connection.query(
+		'INSERT INTO role SET ?',
+		{
+			title: answer.title,
+			salary: answer.salary,
+			department_id: departments[answer.department_id],
+		},
+		(err, res) => {
+			if (err) throw err;
+			console.log(`${answer.title} was successfully added.`);
+			employeeTracker();
+		}
+	);
 }
 
 function viewDepartments() {
