@@ -175,14 +175,27 @@ function viewEmployees() {
 	});
 }
 
-// TODO: Add a getEmpData() that resembles getRoleData()
-
 function updateEmpRole() {
+	let empsInfo = false;
+	let rolesInfo = false;
 	const query = 'SELECT * FROM employee';
 	connection.query(query, (err, res) => {
-		if (err) throw err
-		console.log(res.length + ' employees found!')
+		if (err) throw err;
+		empsInfo = getEmpData(res);
 	});
+
+	const roleQuery = 'SELECT * FROM role';
+	connection.query(roleQuery, (err, res) => {
+		if (err) throw err;
+		rolesInfo = getRoleData(res);
+	});
+
+	if (empsInfo && rolesInfo) {
+		console.log(res.length + ' employees found!');
+		console.log(rolesInfo, 'rolesInfo');
+		promptEmpUpdate(empsInfo, rolesInfo);
+	}
+
 	// connection.query('UPDATE employee SET ? WHERE ?',
 	// 	[{
 	// 		role_id: 3
@@ -191,36 +204,65 @@ function updateEmpRole() {
 	// 		id: 7
 	// 	}]
 	// );
+}
 
+// TODO: Add a getEmpData() that resembles getRoleData()
+function getEmpData(res) {
+	const empData = [];
+	const empNames = [];
+	res.forEach((row) => {
+		empNames.push(row.first_name + ' ' + row.last_name);
+		empData.push({
+			first_name: row.first_name,
+			last_name: row.last_name,
+			role_id: row.role_id,
+			manager_id: row.manager_id,
+		});
+	});
+	return { name: empNames, data: empData };
+}
+
+function promptEmpUpdate(empObj, roleObj) {
+	console.log("empUpdate", roleObj);
 	inquirer
 		.prompt([
 			{
 				name: 'employee',
 				type: 'list',
-				message: 'Provide the role title of your employee you wish to update.',
-				choices: employeeNames,
+				message: 'Provide the name of the employee you wish to update.',
+				choices: empObj.name,
 			},
 			{
 				name: 'role',
 				type: 'list',
 				message:
-					'Provide the role title of your employee you wish to update.',
-				choices: roleNames,
+					'Provide the role title of the employee you wish to update.',
+				choices: roleObj.name,
 			},
 		])
 		.then((answer) => {
-			connection.query(
-				'INSERT INTO department SET ?',
+			console.log('answer');
+			console.log(empObj.find((data) => data.name === answer.employee).data.role_id);
+			const empInfo = empObj.find(data => data.name === answer.employee).data.role_id;
+			console.log(empInfo);
+			const roleInfo = roleObj.find(data => data.name === answer.role).id;
+			insertUpdatedEmployee(answer, empInfo, roleInfo);
+		});
+}
+
+function insertUpdatedEmployee(answer, empInfo, roleInfo) {
+				connection.query(
+				'UPDATE employee SET ? WHERE ?',
 				{
-					name: answer.name,
+					first_name: answer.first_name,
+					role_id: roleID
 				},
 				(err, res) => {
 					if (err) throw err;
-					console.log(`${answer.name} was successfully added.`);
+					console.log(`${answer.first_name} was successfully updated.`);
 					employeeTracker();
 				}
 			);
-		});
 }
 
 function viewRoles() {
@@ -327,5 +369,5 @@ function addDepartment() {
 }
 
 function exit() {
-	process.exit(0);
+	connection.end();
 }
