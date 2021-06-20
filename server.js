@@ -111,7 +111,7 @@ function getRoleData(res) {
 			department_id: row.department_id,
 		});
 	});
-	return {name: roleNames, data: roleData}
+	return { name: roleNames, data: roleData };
 }
 
 function promptNewEmployee(roleNames, roleData) {
@@ -140,7 +140,7 @@ function promptNewEmployee(roleNames, roleData) {
 			},
 		])
 		.then((answer) => {
-			const roleID = roleData.find(data => data.title === answer.role).id;
+			const roleID = roleData.find((data) => data.title === answer.role).id;
 			// inserts to db
 			insertNewEmployees(answer, roleID);
 		});
@@ -182,31 +182,17 @@ function updateEmpRole() {
 	connection.query(query, (err, res) => {
 		if (err) throw err;
 		empsInfo = getEmpData(res);
+
+		const roleQuery = 'SELECT * FROM role';
+		connection.query(roleQuery, (err, res) => {
+			if (err) throw err;
+			rolesInfo = getRoleData(res);
+
+			promptEmpUpdate(empsInfo, rolesInfo);
+		});
 	});
-
-	const roleQuery = 'SELECT * FROM role';
-	connection.query(roleQuery, (err, res) => {
-		if (err) throw err;
-		rolesInfo = getRoleData(res);
-	});
-
-	if (empsInfo && rolesInfo) {
-		console.log(res.length + ' employees found!');
-		console.log(rolesInfo, 'rolesInfo');
-		promptEmpUpdate(empsInfo, rolesInfo);
-	}
-
-	// connection.query('UPDATE employee SET ? WHERE ?',
-	// 	[{
-	// 		role_id: 3
-	// 	},
-	// 	{
-	// 		id: 7
-	// 	}]
-	// );
 }
 
-// TODO: Add a getEmpData() that resembles getRoleData()
 function getEmpData(res) {
 	const empData = [];
 	const empNames = [];
@@ -223,7 +209,7 @@ function getEmpData(res) {
 }
 
 function promptEmpUpdate(empObj, roleObj) {
-	console.log("empUpdate", roleObj);
+	console.log('empUpdate', roleObj);
 	inquirer
 		.prompt([
 			{
@@ -241,28 +227,27 @@ function promptEmpUpdate(empObj, roleObj) {
 			},
 		])
 		.then((answer) => {
-			console.log('answer');
-			console.log(empObj.find((data) => data.name === answer.employee).data.role_id);
-			const empInfo = empObj.find(data => data.name === answer.employee).data.role_id;
-			console.log(empInfo);
-			const roleInfo = roleObj.find(data => data.name === answer.role).id;
-			insertUpdatedEmployee(answer, empInfo, roleInfo);
+			const empInfo = empObj.data.find((worker) => worker.first_name + ' ' + worker.last_name === answer.employee).role_id;
+			const roleInfo = roleObj.data.find((job) => job.title === answer.role).id;
+			insertUpdatedEmployee(answer.employee, empInfo, roleInfo);
 		});
 }
 
-function insertUpdatedEmployee(answer, empInfo, roleInfo) {
-				connection.query(
-				'UPDATE employee SET ? WHERE ?',
-				{
-					first_name: answer.first_name,
-					role_id: roleID
-				},
-				(err, res) => {
-					if (err) throw err;
-					console.log(`${answer.first_name} was successfully updated.`);
-					employeeTracker();
-				}
-			);
+function insertUpdatedEmployee(name, empInfo, roleInfo) {
+	connection.query(
+		'UPDATE employee SET ? WHERE ?',
+		[{
+			role_id: roleInfo
+		},
+		{
+			id: empInfo
+		}],
+		(err, res) => {
+			if (err) throw err;
+			console.log(`${name} was successfully updated.`);
+			employeeTracker();
+		}
+	);
 }
 
 function viewRoles() {
@@ -278,7 +263,8 @@ function viewRoles() {
 function addRole() {
 	const roleNames = [];
 	const departmentNames = {};
-	const query = 'SELECT * FROM role INNER JOIN department ON role.department_id = department.id';
+	const query =
+		'SELECT * FROM role INNER JOIN department ON role.department_id = department.id';
 	connection.query(query, (err, res) => {
 		if (err) throw err;
 		res.forEach((row) => {
@@ -344,28 +330,28 @@ function addDepartment() {
 	const query = 'SELECT * FROM department';
 	connection.query(query, (err, res) => {
 		if (err) throw err;
-		});
-		inquirer
-			.prompt([
+	});
+	inquirer
+		.prompt([
+			{
+				name: 'name',
+				type: 'input',
+				message: 'Provide the name of your department.',
+			},
+		])
+		.then((answer) => {
+			connection.query(
+				'INSERT INTO department SET ?',
 				{
-					name: 'name',
-					type: 'input',
-					message: 'Provide the name of your department.',
+					name: answer.name,
 				},
-			])
-			.then((answer) => {
-				connection.query(
-					'INSERT INTO department SET ?',
-					{
-						name: answer.name,
-					},
-					(err, res) => {
-						if (err) throw err;
-						console.log(`${answer.name} was successfully added.`);
-						employeeTracker();
-					}
-				);
-			});
+				(err, res) => {
+					if (err) throw err;
+					console.log(`${answer.name} was successfully added.`);
+					employeeTracker();
+				}
+			);
+		});
 }
 
 function exit() {
