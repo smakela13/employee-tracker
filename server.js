@@ -1,12 +1,15 @@
+// Loads the modules required to run the application
 const inquirer = require('inquirer');
-const consoleTable = require('console.table');
+const cTable = require('console.table');
 const connection = require('./config/connection');
 
+// Connection to the database
 connection.connect((err) => {
 	if (err) throw err;
 	employeeTracker();
 });
 
+// The main menu of the application
 const employeeTracker = () => {
 	inquirer
 		.prompt({
@@ -80,16 +83,18 @@ const employeeTracker = () => {
 		});
 };
 
+// Allows user to view employees, then takes user back to the menu
 function viewEmployees() {
 	const query = 'SELECT * FROM employee';
 	connection.query(query, (err, res) => {
 		if (err) throw err;
-		console.log(res.length + ' employees found!');
 		console.table('Current Employees:', res);
 		employeeTracker();
 	});
 }
 
+/* First step in allowing a user to add an employee.
+Queries the database and then calls for the next function promptNewEmployee */
 function addEmployee() {
 	const query = 'SELECT * FROM role';
 	connection.query(query, (err, res) => {
@@ -99,21 +104,8 @@ function addEmployee() {
 	});
 }
 
-function getRoleData(res) {
-	const roleData = [];
-	const roleNames = [];
-	res.forEach((row) => {
-		roleNames.push(row.title);
-		roleData.push({
-			title: row.title,
-			id: row.id,
-			salary: row.salary,
-			department_id: row.department_id,
-		});
-	});
-	return { name: roleNames, data: roleData };
-}
-
+/* Prompts the user to enter information on the new employee,
+then calls for the next function that inserts the new information into the database */
 function promptNewEmployee(roleNames, roleData) {
 	inquirer
 		.prompt([
@@ -146,6 +138,7 @@ function promptNewEmployee(roleNames, roleData) {
 		});
 }
 
+// Inserts the new employee into the database, then takes user back to the menu
 function insertNewEmployees(answer, roleID) {
 	connection.query(
 		'INSERT INTO employee SET ?',
@@ -157,24 +150,15 @@ function insertNewEmployees(answer, roleID) {
 		},
 		(err, res) => {
 			if (err) throw err;
-			console.log(
-				`${answer.first_name} ${answer.last_name} was successfully added.`
-			);
+			console.log(`${answer.first_name} ${answer.last_name} was successfully added.`);
+			console.table('All Employees: ', );
 			employeeTracker();
 		}
 	);
 }
 
-function viewEmployees() {
-	const query = 'SELECT * FROM employee';
-	connection.query(query, (err, res) => {
-		if (err) throw err;
-		console.log(res.length + ' employees found!');
-		console.table('Current Employees:', res);
-		employeeTracker();
-	});
-}
-
+/* Begins the process of updating an employee role, which queries 
+the database and then calls for prompting the user to fill out the form */
 function updateEmpRole() {
 	let empsInfo = false;
 	let rolesInfo = false;
@@ -193,21 +177,8 @@ function updateEmpRole() {
 	});
 }
 
-function getEmpData(res) {
-	const empData = [];
-	const empNames = [];
-	res.forEach((row) => {
-		empNames.push(row.first_name + ' ' + row.last_name);
-		empData.push({
-			first_name: row.first_name,
-			last_name: row.last_name,
-			role_id: row.role_id,
-			manager_id: row.manager_id,
-		});
-	});
-	return { name: empNames, data: empData };
-}
-
+/* Prompts the user to enter the updated employee role information, then 
+calls for inserting the new information into database */
 function promptEmpUpdate(empObj, roleObj) {
 	console.log('empUpdate', roleObj);
 	inquirer
@@ -233,6 +204,7 @@ function promptEmpUpdate(empObj, roleObj) {
 		});
 }
 
+// Inserts the updated employee role into the database, then takes user back to the menu
 function insertUpdatedEmployee(name, empInfo, roleInfo) {
 	connection.query(
 		'UPDATE employee SET ? WHERE ?',
@@ -250,16 +222,18 @@ function insertUpdatedEmployee(name, empInfo, roleInfo) {
 	);
 }
 
+// Allows user to view the roles, then takes user back to the menu
 function viewRoles() {
 	const query = 'SELECT * FROM role';
 	connection.query(query, (err, res) => {
 		if (err) throw err;
-		console.log(res.length + ' employees found!');
-		console.table('Current Employees by Manager:', res);
+		console.table('Current Roles:', res);
 		employeeTracker();
 	});
 }
 
+/* Begins the process of adding a new role, which starts with querying 
+the database and calling the next function to start */
 function addRole() {
 	const roleNames = [];
 	const departmentNames = {};
@@ -275,6 +249,7 @@ function addRole() {
 	});
 }
 
+// Prompts user for the new role information
 function promptNewRole(departments) {
 	inquirer
 		.prompt([
@@ -300,6 +275,7 @@ function promptNewRole(departments) {
 		});
 }
 
+// Inserts the new role to the database, then takes user back to the menu
 function insertNewRole(answer, departments) {
 	connection.query(
 		'INSERT INTO role SET ?',
@@ -316,16 +292,17 @@ function insertNewRole(answer, departments) {
 	);
 }
 
+// Allows user to view a department, then takes user back to the menu
 function viewDepartments() {
 	const query = 'SELECT * FROM department';
 	connection.query(query, (err, res) => {
 		if (err) throw err;
-		console.log(res.length + ' employees found!');
-		console.table('Current Employees by Department:', res);
+		console.table('Current Departments:', res);
 		employeeTracker();
 	});
 }
 
+// Allows user to add a department, then takes user back to the menu
 function addDepartment() {
 	const query = 'SELECT * FROM department';
 	connection.query(query, (err, res) => {
@@ -354,6 +331,39 @@ function addDepartment() {
 		});
 }
 
+// Gets the role data for the user
+function getRoleData(res) {
+	const roleData = [];
+	const roleNames = [];
+	res.forEach((row) => {
+		roleNames.push(row.title);
+		roleData.push({
+			title: row.title,
+			id: row.id,
+			salary: row.salary,
+			department_id: row.department_id,
+		});
+	});
+	return { name: roleNames, data: roleData };
+}
+
+// Gets the employee data for the user
+function getEmpData(res) {
+	const empData = [];
+	const empNames = [];
+	res.forEach((row) => {
+		empNames.push(row.first_name + ' ' + row.last_name);
+		empData.push({
+			first_name: row.first_name,
+			last_name: row.last_name,
+			role_id: row.role_id,
+			manager_id: row.manager_id,
+		});
+	});
+	return { name: empNames, data: empData };
+}
+
+// Allows user to exit the app by ending the connection
 function exit() {
 	connection.end();
 }
