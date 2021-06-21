@@ -88,7 +88,7 @@ function viewEmployees() {
 	const query = 'SELECT * FROM employee';
 	connection.query(query, (err, res) => {
 		if (err) throw err;
-		console.table('Current Employees:', res);
+		console.table(' Current Employees:', res);
 		employeeTracker();
 	});
 }
@@ -152,6 +152,7 @@ function insertNewEmployees(answer, roleID) {
 			if (err) throw err;
 			console.log(`${answer.first_name} ${answer.last_name} was successfully added.`);
 			employeeTracker();
+			viewEmployees();
 		}
 	);
 }
@@ -176,7 +177,7 @@ function promptRemoveEmployee(empObj) {
 			{
 				name: 'employee',
 				type: 'list',
-				message: 'Provide the name of the employee you wish to update.',
+				message: 'Provide the name of the employee you wish to remove.',
 				choices: empObj.name,
 			},
 		])
@@ -198,6 +199,7 @@ function removeEmployeeDB(name, empInfo) {
 			if (err) throw err;
 			console.log(`${name} was successfully removed.`);
 			employeeTracker();
+			viewEmployees();
 		}
 	);
 }
@@ -262,6 +264,7 @@ function insertUpdatedEmployee(name, empInfo, roleInfo) {
 			if (err) throw err;
 			console.log(`${name} was successfully updated.`);
 			employeeTracker();
+			viewEmployees();
 		}
 	);
 }
@@ -271,7 +274,7 @@ function viewRoles() {
 	const query = 'SELECT * FROM role';
 	connection.query(query, (err, res) => {
 		if (err) throw err;
-		console.table('Current Roles:', res);
+		console.table(' Current Roles:', res);
 		employeeTracker();
 	});
 }
@@ -332,6 +335,54 @@ function insertNewRole(answer, departments) {
 			if (err) throw err;
 			console.log(`${answer.title} was successfully added.`);
 			employeeTracker();
+			viewRoles();
+		}
+	);
+}
+
+/* First step in allowing a user to remove a role.
+Queries the database and then calls for the next function promptRemoveRole */
+function removeRole() {
+	let rolesInfo = false;
+	const query = 'SELECT * FROM role';
+	connection.query(query, (err, res) => {
+		if (err) throw err;
+		rolesInfo = getRoleData(res);
+		promptRemoveRole(rolesInfo);
+	});
+}
+
+/* Prompts the user to choose which role to remove,
+then calls for the next function that removes the role from the database */
+function promptRemoveRole(roleObj) {
+	inquirer
+		.prompt([
+			{
+				name: 'role',
+				type: 'list',
+				message: 'Provide the name of the role title you wish to remove.',
+				choices: roleObj.name,
+			},
+		])
+		.then((answer) => {
+			const roleInfo = roleObj.data.find((job) => job.title === answer.role).id;
+			// inserts to db
+			removeRoleDB(answer.role, roleInfo);
+		});
+}
+
+// Removes the employee from the database, then takes user back to the menu
+function removeRoleDB(name, roleInfo) {
+	connection.query(
+		'DELETE FROM role WHERE ?',
+		{
+			id: roleInfo
+		},
+		(err, res) => {
+			if (err) throw err;
+			console.log(`${name} was successfully removed.`);
+			employeeTracker();
+			viewRoles();
 		}
 	);
 }
@@ -341,7 +392,7 @@ function viewDepartments() {
 	const query = 'SELECT * FROM department';
 	connection.query(query, (err, res) => {
 		if (err) throw err;
-		console.table('Current Departments:', res);
+		console.table(' Current Departments:', res);
 		employeeTracker();
 	});
 }
@@ -370,6 +421,7 @@ function addDepartment() {
 					if (err) throw err;
 					console.log(`${answer.name} was successfully added.`);
 					employeeTracker();
+					viewDepartments();
 				}
 			);
 		});
