@@ -151,7 +151,52 @@ function insertNewEmployees(answer, roleID) {
 		(err, res) => {
 			if (err) throw err;
 			console.log(`${answer.first_name} ${answer.last_name} was successfully added.`);
-			console.table('All Employees: ', );
+			employeeTracker();
+		}
+	);
+}
+
+/* First step in allowing a user to remove an employee.
+Queries the database and then calls for the next function promptRemoveEmployee */
+function removeEmployee() {
+	let empsInfo = false;
+	const query = 'SELECT * FROM employee';
+	connection.query(query, (err, res) => {
+		if (err) throw err;
+		empsInfo = getEmpData(res);
+		promptRemoveEmployee(empsInfo);
+	});
+}
+
+/* Prompts the user to choose which employee to remove,
+then calls for the next function that removes the employee from the database */
+function promptRemoveEmployee(empObj) {
+	inquirer
+		.prompt([
+			{
+				name: 'employee',
+				type: 'list',
+				message: 'Provide the name of the employee you wish to update.',
+				choices: empObj.name,
+			},
+		])
+		.then((answer) => {
+			const empInfo = empObj.data.find((worker) => worker.first_name + ' ' + worker.last_name === answer.employee).id;
+			// inserts to db
+			removeEmployeeDB(answer.employee, empInfo);
+		});
+}
+
+// Removes the employee from the database, then takes user back to the menu
+function removeEmployeeDB(name, empInfo) {
+	connection.query(
+		'DELETE FROM employee WHERE ?',
+		{
+			id: empInfo
+		},
+		(err, res) => {
+			if (err) throw err;
+			console.log(`${name} was successfully removed.`);
 			employeeTracker();
 		}
 	);
@@ -180,7 +225,6 @@ function updateEmpRole() {
 /* Prompts the user to enter the updated employee role information, then 
 calls for inserting the new information into database */
 function promptEmpUpdate(empObj, roleObj) {
-	console.log('empUpdate', roleObj);
 	inquirer
 		.prompt([
 			{
@@ -358,6 +402,7 @@ function getEmpData(res) {
 			last_name: row.last_name,
 			role_id: row.role_id,
 			manager_id: row.manager_id,
+			id: row.id,
 		});
 	});
 	return { name: empNames, data: empData };
