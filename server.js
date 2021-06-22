@@ -33,7 +33,7 @@ const employeeTracker = () => {
 		.then((answer) => {
 			switch (answer.action) {
 				case 'View All Employees':
-					viewEmployees();
+					viewAll();
 					break;
 
 				case 'Add Employee':
@@ -83,9 +83,10 @@ const employeeTracker = () => {
 		});
 };
 
-// Allows user to view employees, then takes user back to the menu
-function viewEmployees() {
-	const query = 'SELECT * FROM employee';
+// Views all employees, departments, and role data
+function viewAll() {
+	const query =
+		'SELECT employee.id AS "ID", employee.first_name AS "first_name", employee.last_name AS "last_name", role.title AS "title", department.name AS "department", role.salary AS "salary", employee.manager_id AS "manager ID" FROM employee INNER JOIN role ON employee.role_id = role.id INNER JOIN department ON role.department_id = department.id ORDER BY employee.id';
 	connection.query(query, (err, res) => {
 		if (err) throw err;
 		console.table(' Current Employees:', res);
@@ -152,7 +153,6 @@ function insertNewEmployees(answer, roleID) {
 			if (err) throw err;
 			console.log(`${answer.first_name} ${answer.last_name} was successfully added.`);
 			employeeTracker();
-			viewEmployees();
 		}
 	);
 }
@@ -199,7 +199,6 @@ function removeEmployeeDB(name, empInfo) {
 			if (err) throw err;
 			console.log(`${name} was successfully removed.`);
 			employeeTracker();
-			viewEmployees();
 		}
 	);
 }
@@ -264,7 +263,6 @@ function insertUpdatedEmployee(name, empInfo, roleInfo) {
 			if (err) throw err;
 			console.log(`${name} was successfully updated.`);
 			employeeTracker();
-			viewEmployees();
 		}
 	);
 }
@@ -335,7 +333,6 @@ function insertNewRole(answer, departments) {
 			if (err) throw err;
 			console.log(`${answer.title} was successfully added.`);
 			employeeTracker();
-			viewRoles();
 		}
 	);
 }
@@ -382,7 +379,6 @@ function removeRoleDB(name, roleInfo) {
 			if (err) throw err;
 			console.log(`${name} was successfully removed.`);
 			employeeTracker();
-			viewRoles();
 		}
 	);
 }
@@ -421,7 +417,6 @@ function addDepartment() {
 					if (err) throw err;
 					console.log(`${answer.name} was successfully added.`);
 					employeeTracker();
-					viewDepartments();
 				}
 			);
 		});
