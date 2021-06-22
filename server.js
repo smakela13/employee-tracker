@@ -243,7 +243,7 @@ function promptEmpUpdate(empObj, roleObj) {
 			},
 		])
 		.then((answer) => {
-			const empInfo = empObj.data.find((worker) => worker.first_name + ' ' + worker.last_name === answer.employee).role_id;
+			const empInfo = empObj.data.find((worker) => worker.first_name + ' ' + worker.last_name === answer.employee).id;
 			const roleInfo = roleObj.data.find((job) => job.title === answer.role).id;
 			insertUpdatedEmployee(answer.employee, empInfo, roleInfo);
 		});
@@ -311,7 +311,7 @@ function promptNewRole(departments) {
 			{
 				name: 'department_id',
 				type: 'list',
-				message: 'Provide the department id for your role.',
+				message: 'Provide the department for your role.',
 				choices: Object.keys(departments),
 			},
 		])
@@ -416,6 +416,35 @@ function addDepartment() {
 				(err, res) => {
 					if (err) throw err;
 					console.log(`${answer.name} was successfully added.`);
+					employeeTracker();
+				}
+			);
+		});
+}
+
+// Allows user to remove a department, then takes user back to the menu
+function removeDepartment() {
+	const query = 'SELECT * FROM department';
+	connection.query(query, (err, res) => {
+		if (err) throw err;
+	});
+	inquirer
+		.prompt([
+			{
+				name: 'name',
+				type: 'input',
+				message: 'Provide the name of your department.',
+			},
+		])
+		.then((answer) => {
+			connection.query(
+				'DELETE FROM department WHERE ?',
+				{
+					name: answer.name,
+				},
+				(err, res) => {
+					if (err) throw err;
+					console.log(`${answer.name} was successfully removed.`);
 					employeeTracker();
 				}
 			);
