@@ -34,13 +34,11 @@ Once those steps are done, you can view the application in your terminal.
 
 ## Usage
 
-Navigate to [Sarah Mäkelä's video](https://youtu.be/vBxUq7Q1XxA) to view the application's functionality.
-
-![Sarah Mäkelä's Workout Tracker](./assets/employee-tracker-screenshot.png)
+![Soma Mäkelä's Workout Tracker](./assets/employee-tracker-screenshot.png)
 
 ## Credits
 
-Created by [Sarah Mäkelä](https://github.com/smakela13).
+Created by [Soma Mäkelä](https://github.com/smakela13).
 
 ## License
 
